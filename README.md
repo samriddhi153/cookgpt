@@ -1,6 +1,7 @@
 # CookGPT – Multi-Agent AI Cooking Assistant
 
 <div align="center">
+**[ProjectGitHubLink](https://github.com/samriddhi153/cookgpt)**
 
 **CookGPT** is an AI-powered cooking assistant that generates personalized recipes using a multi-agent LangGraph workflow with Retrieval-Augmented Generation (RAG).
 
@@ -23,22 +24,12 @@ CookGPT combines large language models with structured knowledge retrieval to cr
 
 ### Recipe Dataset
 
-CookGPT uses the **Recipe1M+** dataset, one of the largest publicly available recipe collections:
+CookGPT uses the **Recipe1M+** dataset (~1M recipes). Due to GitHub size limits, data files are not included in the repository.
 
-- **Size**: Over 1 million recipes
-- **Format**: JSONL (`data/processed/`)
-- **Fields per recipe**:
-  - `title`: Recipe name
-  - `ingredients`: List of ingredients with quantities
-  - `instructions`: Step-by-step cooking directions
-  - `source`: Origin dataset (train/val/test splits)
-
-The dataset is preprocessed into three files:
-- `train.jsonl`: ~800K recipes for RAG indexing
-- `val.jsonl`: ~100K recipes for validation
-- `test.jsonl`: ~100K recipes for testing
-
-Recipes are embedded using **Sentence Transformers** (`paraphrase-MiniLM-L3-v2`) and indexed with **FAISS** for efficient similarity search. The index (`rag_index.pkl`) is built once and reused across sessions.
+To run:
+1. Download Recipe1M+ from https://imagededup.github.io/recipe-dataset/
+2. Place JSONL files in `data/processed/`
+3. Run `python build_rag_index.py` to build the FAISS index
 
 ### Nutrition Data
 
