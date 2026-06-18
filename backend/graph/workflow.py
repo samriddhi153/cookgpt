@@ -1,7 +1,7 @@
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 
-# ✅ NEW IMPORT
+# Import LLMService
 from backend.services.llm_service import LLMService
 from rag.retriever import retrieve_context
 from backend.services.validation_service import validate_recipe
@@ -30,7 +30,7 @@ class GraphState(TypedDict):
 def chef_agent(state: GraphState):
     user_input = state["user_input"]
 
-    # 🔥 RAG context
+    # RAG context
     try:
         context = retrieve_context(user_input)
     except Exception:

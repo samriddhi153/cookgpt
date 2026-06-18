@@ -35,7 +35,7 @@ def extract_ingredients(recipe_text: str):
 # -----------------------------------
 def clean_ingredient(text: str):
     """
-    Convert '1 cup chopped onions' → 'onion'
+    Convert '1 cup chopped onions' to 'onion'
     """
 
     # remove numbers + units
@@ -128,7 +128,7 @@ def query_usda(ingredient: str):
 def get_nutrition(recipe_text: str):
     """
     Full pipeline:
-    recipe → ingredients → USDA → aggregated nutrition
+    recipe -> ingredients -> USDA -> aggregated nutrition
     """
 
     ingredients_raw = extract_ingredients(recipe_text)

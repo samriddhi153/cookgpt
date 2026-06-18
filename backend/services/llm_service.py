@@ -41,7 +41,7 @@ class LLMService:
         try:
             from transformers import pipeline
 
-            # ⚠️ Use SMALL model (no GPU needed)
+            # Use SMALL model (no GPU needed)
             hf_pipeline = pipeline(
                 "text-generation",
                 model="distilgpt2"
@@ -106,7 +106,7 @@ class LLMService:
             print(f"HF failed: {str(e)}")
 
         # ---- FINAL SAFE RESPONSE ----
-        return "⚠️ AI service is temporarily unavailable. Please try again."
+        return "AI service is temporarily unavailable. Please try again."
 
     def generate_text(self, prompt: str) -> str:
         return self.generate(prompt)
