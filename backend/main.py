@@ -9,6 +9,10 @@ from rag.retriever import initialize_rag
 from backend.graph.workflow import graph
 
 
+class RequestModel(BaseModel):
+    query: str
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[RAG] Initializing system...")
