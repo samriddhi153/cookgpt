@@ -31,7 +31,8 @@ def generate(request: RequestModel):
         "recipe": "",
         "nutrition": {},
         "is_valid": False,
-        "retry_count": 0
+        "retry_count": 0,
+        "feedback": ""
     })
 
     return {

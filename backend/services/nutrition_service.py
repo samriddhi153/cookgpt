@@ -11,23 +11,49 @@ USDA_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 # -----------------------------------
 def extract_ingredients(recipe_text: str):
     """
-    Extract ingredient lines from recipe text
+    Extract ingredient lines from recipe text using section detection
+    and pattern matching.
     """
 
     lines = recipe_text.split("\n")
     ingredients = []
 
+    in_section = False
+
     for line in lines:
-        line = line.strip().lower()
+        clean_line = line.strip()
+        l = clean_line.lower()
 
-        # Look for ingredient-like lines
-        if any(unit in line for unit in [
-            "cup", "cups", "tbsp", "tsp", "gram", "g", "kg",
-            "ml", "oz", "tablespoon", "teaspoon"
-        ]):
-            ingredients.append(line)
+        # Section detection
+        if "ingredient" in l:
+            in_section = True
+            continue
+        if in_section and any(x in l for x in ["step", "instruction", "direction", "method"]):
+            in_section = False
 
-    return ingredients[:8]  # limit for API safety
+        if in_section and clean_line:
+            # Match bullets, numbers, or just descriptive lines in the section
+            if re.match(r"^[\d\-\*\.\u2022]", l) or len(l) > 2:
+                ingredients.append(l)
+
+    # Fallback: if no section found, look for unit-bearing lines anywhere
+    if not ingredients:
+        for line in lines:
+            l = line.strip().lower()
+            if any(unit in l for unit in [
+                "cup", "tbsp", "tsp", "gram", "oz", "tablespoon", "teaspoon"
+            ]):
+                ingredients.append(l)
+
+    # Unique and limited
+    seen = set()
+    result = []
+    for i in ingredients:
+        if i not in seen:
+            result.append(i)
+            seen.add(i)
+
+    return result[:10]
 
 
 # -----------------------------------
@@ -38,24 +64,41 @@ def clean_ingredient(text: str):
     Convert '1 cup chopped onions' to 'onion'
     """
 
-    # remove numbers + units
-    text = re.sub(r"\d+", "", text)
+    # Blacklist of non-caloric or problematic items
+    blacklist = ["salt", "water", "pepper", "parsley", "thyme", "ice", "vinegar"]
+    if any(b in text.lower() for b in blacklist):
+        return ""
+
+    # remove numbers + fractions
+    text = re.sub(r"[\d\/\.\u00BC-\u00BE\u2150-\u215E]+", "", text)
 
     units = [
         "cup", "cups", "tbsp", "tsp", "gram", "g", "kg",
-        "ml", "oz", "tablespoon", "teaspoon"
+        "ml", "oz", "tablespoon", "teaspoons", "teaspoon", "tablespoons",
+        "pound", "lb", "can", "bottle", "pinch", "dash"
     ]
 
+    # remove units
     for unit in units:
-        text = text.replace(unit, "")
+        text = re.sub(r"\b" + unit + r"s?\b", "", text)
 
-    # remove extra words
-    text = re.sub(r"(chopped|minced|sliced|fresh|large|small)", "", text)
+    # remove extra words/adjectives
+    adjectives = [
+        "chopped", "minced", "sliced", "fresh", "large", "small", "medium",
+        "diced", "peeled", "grated", "shredded", "dried", "ground", "crushed",
+        "negligible", "optional", "to taste", "low-sodium", "low-calorie"
+    ]
 
-    # keep only letters
+    for adj in adjectives:
+        text = re.sub(r"\b" + adj + r"\b", "", text)
+
+    # remove symbols
     text = re.sub(r"[^a-zA-Z ]", "", text)
 
-    return text.strip()
+    # collapse whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
 
 
 # -----------------------------------

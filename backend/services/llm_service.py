@@ -58,11 +58,12 @@ class LLMService:
     def _generate_groq(self, prompt: str) -> str:
         client = self._init_groq()
 
+        # Update to a valid model name
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant", # Faster and active
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=800,
+            max_tokens=1000,
         )
 
         return response.choices[0].message.content

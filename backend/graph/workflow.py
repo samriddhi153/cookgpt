@@ -22,6 +22,7 @@ class GraphState(TypedDict):
     nutrition: dict
     is_valid: bool
     retry_count: int
+    feedback: str
 
 
 # -------------------------
@@ -29,6 +30,7 @@ class GraphState(TypedDict):
 # -------------------------
 def chef_agent(state: GraphState):
     user_input = state["user_input"]
+    feedback = state.get("feedback", "")
 
     # RAG context
     try:
@@ -36,25 +38,33 @@ def chef_agent(state: GraphState):
     except Exception:
         context = "No external context available."
 
-    prompt = f"""
-You are an expert AI Chef.
+    feedback_prompt = ""
+    if feedback:
+        feedback_prompt = f"\n\nNOTE: Your previous attempt was rejected for these reasons: {feedback}. Please fix them."
 
-Use this real recipe context:
+    prompt = f"""
+You are an expert AI Chef. Your goal is to provide high-quality, delicious, and healthy recipes.
+
+CONTEXT FROM RECIPE DATABASE:
 {context}
 
-User request:
+USER REQUEST & PREFERENCES:
 {user_input}
+{feedback_prompt}
 
-Generate a detailed recipe with:
-- Ingredients
-- Steps
+Please follow these STRICT guidelines:
+1. If Diet, Calories, or Cuisine preferences are provided above, ensure the recipe strictly adheres to them.
+2. Structure your response clearly with two main sections: "Ingredients" and "Steps".
+3. Use markdown for better readability.
+4. Be encouraging and helpful.
 """
 
     recipe = llm.generate(prompt)
 
     return {
         **state,
-        "recipe": recipe
+        "recipe": recipe,
+        "feedback": "" # Clear feedback after use
     }
 
 
@@ -66,9 +76,14 @@ def validator_agent(state: GraphState):
 
     is_valid = validate_recipe(recipe)
 
+    feedback = ""
+    if not is_valid:
+        feedback = "Recipe must explicitly include 'Ingredients' and 'Steps' or 'Instructions' sections."
+
     return {
         **state,
-        "is_valid": is_valid
+        "is_valid": is_valid,
+        "feedback": feedback
     }
 
 
@@ -93,13 +108,13 @@ MAX_RETRIES = 2
 
 def route_validation(state: GraphState):
     if state["is_valid"]:
-        return END
+        return "nutrition"
 
-    if state["retry_count"] >= MAX_RETRIES:
+    if state.get("retry_count", 0) >= MAX_RETRIES:
         print("[Workflow] Max retries reached")
-        return END
+        return "nutrition"
 
-    return "chef"
+    return "retry"
 
 
 # -------------------------
@@ -130,8 +145,8 @@ builder.add_conditional_edges(
     "validator",
     route_validation,
     {
-        "chef": "retry",
-        END: "nutrition"
+        "retry": "retry",
+        "nutrition": "nutrition"
     }
 )
 

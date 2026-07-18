@@ -11,7 +11,7 @@ def _get_model():
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
-        model_name = os.getenv("EMBEDDING_MODEL", "paraphrase-MiniLM-L3-v2")
+        model_name = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
         print(f"[RAG] Loading embedding model: {model_name}...")
         _model = SentenceTransformer(model_name, device='cpu')
         print("[RAG] Model ready")

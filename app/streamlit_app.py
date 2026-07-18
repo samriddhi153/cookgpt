@@ -146,6 +146,8 @@ if st.button("Generate"):
             if response.status_code == 200:
                 data = response.json()
                 recipe = data.get("recipe", "")
+                nutrition_data = data.get("nutrition", {})
+                total_nut = nutrition_data.get("total_nutrition", {})
 
                 # -------------------------
                 # FORMAT OUTPUT (PRODUCT STYLE)
@@ -156,10 +158,14 @@ if st.button("Generate"):
 {recipe}
 
 ---
-### 🥗 Nutrition Insight
-Calories target: {calories} kcal  
-Diet: {diet}  
-Cuisine: {cuisine}
+### 🥗 AI Nutrition Analysis
+**Estimated Totals:**
+- 🔥 **Calories:** {total_nut.get('calories', 0):.0f} kcal
+- 🥩 **Protein:** {total_nut.get('protein', 0):.1f} g
+- 🥑 **Fat:** {total_nut.get('fat', 0):.1f} g
+- 🍞 **Carbs:** {total_nut.get('carbs', 0):.1f} g
+
+*Note: These are estimates based on analyzed ingredients.*
 """
 
                 st.session_state.history.append({
